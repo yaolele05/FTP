@@ -4,6 +4,7 @@
 #include <iostream>
 
 eventloop::eventloop():epoll(),channels(){};//初始化列表
+eventloop::~eventloop() = default;
 void eventloop::addchannel(Channel* ch)
 {
    channels[ch->fd]=ch;

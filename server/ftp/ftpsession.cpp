@@ -158,6 +158,7 @@ bool Ftpsession::acceptdataconnection()
 
     if(datafd < 0)
     {
+        //accept 改为非阻塞状态的时候
         if(errno == EAGAIN ||
            errno == EWOULDBLOCK)
         {
@@ -176,25 +177,58 @@ bool Ftpsession::acceptdataconnection()
 
         return false;
     }
+//datafd设置为非阻塞
+    int flags = fcntl( datafd, F_GETFL,0);
 
-    int flags =
-        fcntl(
-            datafd,
-            F_GETFL,
-            0
-        );
-
-    fcntl(
-        datafd,
-        F_SETFL,
-        flags | O_NONBLOCK
-    );
+    fcntl(        datafd,F_SETFL,flags | O_NONBLOCK)  ;
 
     std::cout
         <<"data connected"
         <<std::endl;
 
     return true;
+}
+void Ftpsession::handleLIST(const std::string& arg)
+{
+    if(pasvlistenfd<0)
+    {
+        sendresponse("425 Use PASV first\r\n");
+        return;
+    }
+    sendresponse("150 opening data connection\r\n");
+   /* //尝试accept，等待数据连接建立
+     if(!acceptdataconnection())
+    {
+        sendresponse("425 No data connection\r\n");
+        return;
+    }
+    sendresponse("425 Opening data connection\r\n");
+
+    DIR* dir=opendir(".");
+    if(!dir)
+    {
+        sendresponse("550 failed to open directory\r\n");
+        close(datafd);
+        return;
+    }
+    struct dirent* entry;
+    std::string result;
+    while((entry=readdir(dir))!=nullptr)
+    {
+        result+=entry->d_name;
+        result+= "\r\n";
+
+    }
+    send(datafd,result.c_str(),result.size(),0);
+    closedir(dir);
+    close(datafd);
+    datafd=-1;
+    close(pasvlistenfd);
+    pasvlistenfd=-1;
+ */
+    sendresponse("226 transfer complete\r\n");
+     close(pasvlistenfd);
+    pasvlistenfd = -1;
 }
 /*
 bool Ftpsession::acceptdataconnection()
