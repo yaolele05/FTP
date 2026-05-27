@@ -19,7 +19,10 @@ Connection::Connection(eventloop*loop,int fd):connfd(fd),loop(loop)
 Connection::~Connection()
 {
     //????loop->removechannel(channel);//从事件循环中移除通道
-      
+      loop->removechannel(channel);
+    close(connfd);
+    delete channel;
+    delete session;  
   
 }
 void Connection::send(const std::string& msg)

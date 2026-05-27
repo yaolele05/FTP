@@ -27,6 +27,8 @@ class Ftpsession
 
     void handlePWD(const std::string& arg);
 
+    void handleCWD(const std::string& arg);
+
     void handleTYPE(const std::string& arg);
 
     void handleQUIT(const std::string& arg);
@@ -34,7 +36,13 @@ class Ftpsession
     void handlePASV(const std::string& arg);
 
     void handleLIST(const std::string& arg);
+
+    void handleRETR(const std::string& arg);
+
+    void handleSTOR(const std::string& arg);
+
     bool acceptdataconnection();
+    void closedataconnection();
     private:
         Connection* conn;
         bool loggin;
@@ -43,6 +51,7 @@ class Ftpsession
         int pasvlistenfd;
         int datafd;
         int pasvport;
+        char typemode;
         std::unordered_map<std::string, Commandcallback> commands;//haxi 命令分发表
 
 };
