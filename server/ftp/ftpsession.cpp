@@ -32,7 +32,7 @@ void Ftpsession::initcommands()
     commands["RETR"] = std::bind(&Ftpsession::handleRETR, this, std::placeholders::_1);
     commands["STOR"] = std::bind(&Ftpsession::handleSTOR, this, std::placeholders::_1);
 }
-// ftp协议入口函数，根据命令分发表调用相应的处理函数
+// ftp协议入口函数，根据命令处理函数
 void Ftpsession::oncommand(const std::string &cmdline)
 {
     std::cout << "cmd:" << cmdline << std::endl;
@@ -290,7 +290,7 @@ void Ftpsession::handleRETR(const std::string &arg)
         file.read(buf, sizeof(buf));
         size_t n = file.gcount();
 
-        // 读完了就退出
+        // 读完
         if (n == 0)
             break;
 

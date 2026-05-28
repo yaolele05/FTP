@@ -18,7 +18,7 @@ Connection::Connection(eventloop*loop,int fd):connfd(fd),loop(loop)
 
 Connection::~Connection()
 {
-    //????loop->removechannel(channel);//从事件循环中移除通道
+    
       loop->removechannel(channel);
     close(connfd);
     delete channel;
@@ -30,17 +30,8 @@ void Connection::send(const std::string& msg)
     ssize_t n = ::send(connfd, msg.c_str(), msg.size(), 0);
     if (n < 0 && errno != EAGAIN) {
         std::cerr << "send error" << std::endl;}
-    }
-/*
-void Connection::send(  const std::string& msg)
-{
-    ::send(
-        connfd,
-        msg.c_str(),
-        msg.size(),
-        0
-    );
-}*/
+ }
+
 void Connection::handleread()
 {
     char buf[4096];
@@ -110,124 +101,3 @@ void Connection::handleread()
         session->oncommand(cmdline);
     }
 }
-/*
-void Connection::handleread()
-{
-    std::cout
-        <<"Connection::handleread"
-        <<std::endl;
-
-    char buf[4096];
-
-    while(true)
-    {
-        memset(buf,0,sizeof(buf));
-
-        int n = recv(
-            connfd,
-            buf,
-            sizeof(buf)-1,
-            0
-        );
-
-        // 成功读取数据
-        if(n > 0)
-        {
-            std::string cmdline(buf,n);
-
-            std::cout
-                <<"recv data: "
-                <<cmdline
-                <<std::endl;
-
-            session->oncommand(cmdline);
-        }
-
-        // 客户端关闭连接
-        else if(n == 0)
-        {
-            std::cout
-                <<"client close"
-                <<std::endl;
-
-            loop->removechannel(channel);
-
-            close(connfd);
-
-            return;
-        }
-
-        // 出错
-        else
-        {
-            // ET模式核心：
-            // 数据已经读完
-            if(errno == EAGAIN || errno == EWOULDBLOCK)
-            {
-                std::cout
-                    <<"read complete"
-                    <<std::endl;
-
-                break;
-            }
-
-            // 真正错误
-            perror("recv");
-
-            loop->removechannel(channel);
-
-            close(connfd);
-
-            return;
-        }
-    }
-}*/
-/*
-void Connection::handleread()
-{
-    std::cout
-    <<"Connection::handleread"
-    <<std::endl;
-    char buf[4096]={0};
-
-    int n=recv(
-        connfd,
-        buf,
-        sizeof(buf)-1,
-        0
-    );
-
-    if(n<=0)
-    {
-        std::cout<<"client close"<<std::endl;
-
-        loop->removechannel(channel);
-
-        close(connfd);
-
-        return;
-    }
-
-    std::string cmdline(buf,n);
-
-    session->oncommand(cmdline);
-}*/
-/*
-void Connection::handleread()
-{
-    char buf[1024]={0};
-    int n=recv(connfd,buf,sizeof(buf),0);
-    if(n<=0)
-    {
-        std::cout<<"Connection closed by peer"<<std::endl;
-        //delete this;????//删除当前连接对象，触发析构函数，关闭连接
-        close (connfd); //关闭连接文件描述符
-        return;
-
-    }
-    else
-    {
-        std::cout<<"Received data: "<<buf<<std::endl;
-        //这里可以添加处理数据的逻辑，例如解析请求、生成响应等
-    }
-}*/
