@@ -52,7 +52,7 @@ bash
 
 登录规则
 
-    用户名：任意自定义字符
+    用户名：任意自定义字符(例如：test)
     固定密码:123456
 4. 客户端支持命令
 表格
@@ -70,7 +70,7 @@ retr remote.txt /home/yaolele/
 retr remote.txt .
 
 stor      本地文件           远端文件	  （文件上传）
-仅支持（例子）： stor liz.jpg   test.jpg
+仅支持（例子）： stor liz.jpg test.jpg
 
 quit/exit	退出客户端
 5. 关闭程序
