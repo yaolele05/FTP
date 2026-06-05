@@ -49,7 +49,7 @@ class Ftpsession
     void handleRETR(const std::string& arg);
 
     void handleSTOR(const std::string& arg);
-    std::string buildpath(const std::string& path);
+    std::string normalpath(const std::string& path);
     
     bool acceptdataconnection();
     

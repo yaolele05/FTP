@@ -19,7 +19,13 @@
 #include "../net/util.h"
 
 #include <filesystem>
+
 namespace fs = std::filesystem;
+std::string normalize_path(const std::string& path) {
+    fs::path p(path);
+    fs::path abs = fs::weakly_canonical(p); // 或 fs::canonical，但需目录存在
+    return abs.string();
+}
 Ftpsession::Ftpsession(Connection *conn):   alive(true),conn(conn),
       loggin(false),
         
@@ -108,19 +114,7 @@ void Ftpsession::handleUSER(const std::string &arg)
     username = arg;
     sendresponse("331 User name okay, need password\r\n");
 }
-/*
-void Ftpsession::handlePASS(const std::string &arg)
-{
-    if (arg == "123456")
-    {
-        loggin = true;
-        sendresponse("230 User logged in, proceed\r\n");
-    }
-    else
-    {
-        sendresponse("530 Not logged in\r\n");
-    }
-}*/
+
 void Ftpsession::handlePASS(const std::string &arg)
 {
     std::string clean = arg;
@@ -147,10 +141,11 @@ void Ftpsession::handleSYST(const std::string &arg)
 {
     sendresponse("215 UNIX Type: L8\r\n"); // 返回系统类型
 }
-
 void Ftpsession::handlePWD(const std::string &arg)
 {
-    std::string response = "257 \"" + curdir + "\" is current directory\r\n";
+    std::string response =
+        "257 \"" + curdir + "\" is current directory\r\n";
+
     sendresponse(response);
 }
 
@@ -265,7 +260,6 @@ std::cout
 
     std::cout << "[PASV] accepted data fd = " << connfd << std::endl;
 
-    // accept 后就可以关闭 listen socket?
     
     close(pasvlistenfd);
     pasvlistenfd = -1;
@@ -398,17 +392,18 @@ void Ftpsession::handleCWD(const std::string &arg)
         sendresponse("530 Not logged in\r\n");
         return;
     }
-    std::string newdir = curdir + "/" + arg;
-    if (access(newdir.c_str(), F_OK) != 0)
+
+    fs::path newdir = fs::path(curdir) / arg;
+
+    if (!fs::exists(newdir) || !fs::is_directory(newdir))
     {
         sendresponse("550 Directory does not exist\r\n");
         return;
     }
-    else
-    {
-        curdir = newdir;
-        sendresponse("250 Directory changed to " + curdir + "\r\n"); ///???
-    }
+
+    curdir = fs::weakly_canonical(newdir).string();
+
+    sendresponse("250 Directory changed to " + curdir + "\r\n");
 }
 
 void Ftpsession::handleRETR(const std::string &arg)
@@ -524,241 +519,3 @@ void Ftpsession::handleSTOR(const std::string &arg)
     closedataconnection();
     sendresponse("226 transfer complete\r\n");
 }
-
-/*
-bool Ftpsession::acceptdataconnection()
-{
-      std::cout<<"waiting data connection..."<<std::endl;
-    sockaddr_in clientaddr;
-    socklen_t len=sizeof(clientaddr);
-   datafd=accept(pasvlistenfd,(sockaddr*)&clientaddr,&len);
-   if(datafd<0)
-   {
-     sendresponse(
-            "425 can't open data connection\r\n"
-        );
-
-        return false;
-   }
-     std::cout<<"accept returned"<<std::endl;
-   return true;
-}
-void Ftpsession::handleLIST(const std::string& arg)
-{
-
-
-    if(pasvlistenfd < 0)
-    {
-        sendresponse("425 Use PASV first\r\n");
-        return;
-    }
-        std::cout<<"data connected"<<std::endl;
-    sendresponse("150 opening data connection\r\n");
-    if(!acceptdataconnection())
-    {
-        return;
-    }
-
-        DIR* dir=opendir(".");
-
-    if(!dir)
-    {
-        sendresponse(
-            "550 failed to open directory\r\n"
-        );
-
-        close(datafd);
-
-        return;
-    }
-    //发送目录内容
-        struct dirent* entry;
-
-    std::string result;
-        while((entry=readdir(dir))!=nullptr )
-    {
-        result+=entry->d_name;
-
-        result+="\r\n";
-    }
-        send(
-        datafd,
-        result.c_str(),
-        result.size(),
-        0
-    );
-        closedir(dir);
-
-        close(datafd);
-
-    datafd=-1;
-
-    close(pasvlistenfd);
-
-    pasvlistenfd=-1;
-        sendresponse("226 transfer complete\r\n" );
-
-}*/
-
-
-/*
-void Ftpsession::handleRETR(const std::string& arg)
-{
-    if (!loggin)
-    {
-        sendresponse("530 Not logged in\r\n");
-        return;
-    }
-
-    std::string path = curdir + "/" + arg;
-
-    std::ifstream file(path, std::ios::binary);
-
-    if (!file)
-    {
-        sendresponse("550 Failed to open file\r\n");
-        return;
-    }
-
-    sendresponse("150 opening data connection\r\n");
-
-    if (!acceptdataconnection())
-    {
-        sendresponse("425 No data connection\r\n");
-        return;
-    }
-
-    char buf[4096];
-
-    while (file)
-    {
-        file.read(buf, sizeof(buf));
-
-        std::streamsize n = file.gcount();// 读到的字节数
-
-        if (n <= 0)
-        {
-            break;
-        }
-
-        ssize_t total = 0;
-
-        while (total < n)
-        { 
-            ssize_t s = send(datafd, buf + total, n - total,0);
-
-            if (s < 0)
-            {
-                perror("send");
-
-                file.close();
-
-                closedataconnection();
-
-                sendresponse(
-                    "426 Connection closed; transfer aborted\r\n"
-                );
-                return;
-            }
-            total += s;
-        }
-    }
-
-    file.close();
-
-    closedataconnection();
-
-    sendresponse("226 transfer complete\r\n");
-}
-*/
-/*
-void Ftpsession::handleRETR(const std::string &arg)
-{
-    if (!loggin)
-    {
-        sendresponse("530 Not logged in\r\n");
-        return;
-    }
-
-    std::string path = curdir + "/" + arg;
-    std::ifstream file(path, std::ios::binary);
-    if (!file)
-    {
-        sendresponse("550 Failed to open file\r\n");
-        return;
-    }
-
-    sendresponse("150 opening data connection\r\n");
-
-    if (!acceptdataconnection())
-    {
-        sendresponse("425 No data connection\r\n");
-        file.close();
-        return;
-    }
-
-    
-    char buf[4096];
-    while (true)
-    {
-        // 读文件数据
-        file.read(buf, sizeof(buf));
-        size_t bytes_read = file.gcount();
-
-        // 读完了就退出
-        if (bytes_read == 0)
-            break;
-
-        // 循环发送，保证所有数据都发出去
-        size_t sent = 0;
-        while (sent < bytes_read)
-        {
-            ssize_t ret = send(datafd, buf + sent, bytes_read - sent, 0);
-            if (ret <= 0)
-                goto end_send; // 发送失败直接结束
-            sent += ret;
-        }
-    }
-
-end_send:
-    file.close();
-    closedataconnection();
-    sendresponse("226 transfer complete\r\n");
-}
-
-*/
-/*
-void Ftpsession::handleRETR(const std::string &arg)
-{
-    if (!loggin)
-    {
-        sendresponse("530 Not logged in\r\n");
-        return;
-    }
-    std::string path = curdir + "/" + arg;
-    std::ifstream file(path, std::ios::binary); // 打开文件
-    if (!file)
-    {
-        sendresponse("550 Failed to open file\r\n");
-        return;
-    }
-    sendresponse("150 opening data connection\r\n");
-    if (!acceptdataconnection())
-    {
-        sendresponse("425 No data connection\r\n");
-        return;
-    }
-
-   
-
-    char buf[4096];
-    while (file.read(buf, sizeof(buf)))
-    {
-        send(datafd, buf, file.gcount(), 0);
-    }
-        
-    file.close();
-    closedataconnection();
-    sendresponse("226 transfer complete\r\n");
-}
-*/
