@@ -1,22 +1,26 @@
-FTP:
-基于 Linux Epoll 事件驱动非阻塞 IO 实现简易 FTP 服务端 + 交互式客户端,采用PASV 被动模式传输数据，实现 FTP 基础协议指令。
-一、环境配置步骤
-1. 运行环境
+# FTP:
+
+###### 基于 Linux Epoll 事件驱动非阻塞 IO 实现简易 FTP 服务端 + 交互式客户端,采用PASV 被动模式传输数据，实现 FTP 基础协议指令。
+
+## 一、环境配置步骤
+
+1. **运行环境**
 
     操作系统:Linux(Ubuntu/CentOS)
     编译依赖:g++9.0+、make,支持 C++17(代码使用std::filesystem)
     无第三方库，依赖 Linux 原生 socket、epoll 系统调用
 
-2. 安装编译环境
-bash
-# Ubuntu/Debian
-sudo apt update
-sudo apt install g++ make build-essential
+2. **安装编译环境**
 
-# CentOS/RHEL
-sudo yum install gcc-c++ make
+  > **Ubuntu**
 
-3.目录结构
+  
+
+  `udo apt update`
+
+  `sudo apt install g++ make build-essential
+
+3.**目录结构**
 FTP/
 ├── Makefile
 ├── FTPclient/
@@ -25,55 +29,71 @@ FTP/
     ├── mainserver.cpp
     ├── net/*.cpp
     └── ftp/*.cpp
-二.Makefile
-1.编译
+
+
+
+## 二.Makefile
+
+### 1.*编译*
+
 使用命令：
-bash
-运行
-# 编译
-make
-# 清理
-make clean
-# 单独编译服务端
-make server
-# 单独编译客户端
-make client
-2. 启动 FTP 服务端
-bash
-./server
+
+### 编译
+`make`
+
+### 清理
+`make clean`
+
+### 单独编译服务端
+`make server`
+
+### 单独编译客户端
+
+`make client`
+
+
+
+2. ### 启动 FTP 服务端
+
+  ###### `./server`
 
 默认监听2100 端口,打印Acceptor is listening on port 2100即启动成功。
 
-3. 启动 FTP 客户端
-新开终端执行：
-bash
+3. ### 启动 FTP 客户端
 
-./client
+  新开终端执行：`./client`
 
 登录规则
 
     用户名：任意自定义字符(例如：test)
     固定密码:123456
-4. 客户端支持命令
-表格
-指令	功能
-ls/list	列出远程目录文件
-pwd	      查看远程当前路径
-cwd      目录名	切换远程工作目录
-type I/A	I 二进制 / A ASCII 传输模式
-(支持三种）retr      远端文件      本地文件	   (文件下载)
-1.标准：
-retr remote.txt copy.txt
-2.下载到目录：
-retr remote.txt /home/yaolele/
-3. 当前目录：
-retr remote.txt .
+4. ### 客户端支持命令
 
-stor      本地文件           远端文件	  （文件上传）
-仅支持（例子）： stor liz.jpg test.jpg
+  > 指令				功能
+  > ls/list		    	列出远程目录文件
+  > pwd	     		查看远程当前路径
+  > cwd      			目录名	切换远程工作目录
+  > type I/A			I 二进制 / A ASCII 传输模式
+  >
+  > 
+  >
+  > (支持三种）retr   	   远端文件      本地文件	   (文件下载)
+  > 1.标准：
+  > retr remote.txt copy.txt
+  > 2.下载到目录：
+  > retr remote.txt /home/yaolele/
+  >
+  > 3.当前目录：
+  > retr remote.txt .
+  >
+  > 
+  >
+  > stor      			本地文件           远端文件	  （文件上传）
+  > 仅支持（例子）： 		stor liz.jpg test.jpg
+  >
+  > quit/exit	退出客户端
 
-quit/exit	退出客户端
-5. 关闭程序
+5. ### 关闭程序
 
     客户端：输入quit退出
     服务端：Ctrl+C终止进程
