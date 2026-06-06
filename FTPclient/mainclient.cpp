@@ -20,7 +20,7 @@ int main()
     else
     {
         std::cerr<<"Failed to connect to FTP server!"<<std::endl;
-        return 0;
+        return 1;
     }
 
     std::string user;
